@@ -1,6 +1,6 @@
-﻿using Halforbit.FacetedConstruction.Attributes;
-using Halforbit.FacetedConstruction.Exceptions;
-using Halforbit.FacetedConstruction.Interface;
+﻿using Halforbit.Facets.Attributes;
+using Halforbit.Facets.Exceptions;
+using Halforbit.Facets.Interface;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Text;
 using static System.Linq.Expressions.Expression;
 
-namespace Halforbit.FacetedConstruction.Implementation
+namespace Halforbit.Facets.Implementation
 {
     public class ContextFactory : IContextFactory
     {

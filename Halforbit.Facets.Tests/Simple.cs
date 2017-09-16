@@ -1,10 +1,10 @@
-using Halforbit.FacetedConstruction.Attributes;
-using Halforbit.FacetedConstruction.Implementation;
-using Halforbit.FacetedConstruction.Interface;
+using Halforbit.Facets.Attributes;
+using Halforbit.Facets.Implementation;
+using Halforbit.Facets.Interface;
 using System;
 using Xunit;
 
-namespace Halforbit.FacetedConstruction.Tests
+namespace Halforbit.Facets.Tests
 {
     public class Simple
     {

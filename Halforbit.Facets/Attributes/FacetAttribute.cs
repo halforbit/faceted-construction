@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.FacetedConstruction.Attributes
+namespace Halforbit.Facets.Attributes
 {
     public abstract class FacetAttribute : Attribute
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Halforbit.FacetedConstruction.Exceptions
+namespace Halforbit.Facets.Exceptions
 {
     public class ResultResolutionException : Exception
     {

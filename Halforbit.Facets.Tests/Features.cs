@@ -1,12 +1,12 @@
-using Halforbit.FacetedConstruction.Attributes;
-using Halforbit.FacetedConstruction.Exceptions;
-using Halforbit.FacetedConstruction.Implementation;
-using Halforbit.FacetedConstruction.Interface;
+using Halforbit.Facets.Attributes;
+using Halforbit.Facets.Exceptions;
+using Halforbit.Facets.Implementation;
+using Halforbit.Facets.Interface;
 using Moq;
 using System;
 using Xunit;
 
-namespace Halforbit.FacetedConstruction.Tests
+namespace Halforbit.Facets.Tests
 {
     // TODO:
 

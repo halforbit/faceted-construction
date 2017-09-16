@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Halforbit</Authors>
+    <Company>Halforbit</Company>
+    <Description>Allows instancing of interfaces marked with facet attributes.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.7.99" />
+  </ItemGroup>
+
+</Project>

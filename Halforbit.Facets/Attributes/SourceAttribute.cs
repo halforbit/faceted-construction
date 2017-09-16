@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Halforbit.FacetedConstruction.Attributes
+namespace Halforbit.Facets.Attributes
 {
     public class SourceAttribute : Attribute
     {

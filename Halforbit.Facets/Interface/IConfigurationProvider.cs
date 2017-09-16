@@ -1,5 +1,5 @@
 ﻿
-namespace Halforbit.FacetedConstruction.Interface
+namespace Halforbit.Facets.Interface
 {
     public interface IConfigurationProvider
     {

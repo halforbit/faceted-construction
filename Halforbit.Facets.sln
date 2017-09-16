@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.FacetedConstruction", "Halforbit.FacetedConstruction\Halforbit.FacetedConstruction.csproj", "{A67C4A3D-CE4C-4F05-8B68-8E8A9701B3E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.Facets", "Halforbit.Facets\Halforbit.Facets.csproj", "{A67C4A3D-CE4C-4F05-8B68-8E8A9701B3E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.FacetedConstruction.Tests", "Halforbit.FacetedConstruction.Tests\Halforbit.FacetedConstruction.Tests.csproj", "{D56A4FD0-58F9-41BF-9D22-FADD6B7DDFAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halforbit.Facets.Tests", "Halforbit.Facets.Tests\Halforbit.Facets.Tests.csproj", "{D56A4FD0-58F9-41BF-9D22-FADD6B7DDFAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
