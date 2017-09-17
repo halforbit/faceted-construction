@@ -19,3 +19,12 @@ You can use a `ContextFactory` to create an instance of a context at runtime.
 ```
 
 Facets can be used with [Data Stores](https://github.com/halforbit/data-stores) to create DRY, descriptive, implementationless data contexts.
+
+## Nuget
+
+[Halforbit.Facets](https://www.nuget.org/packages/Halforbit.Facets/) is available as a .NET Standard Nuget package:
+```
+Install-Package Halforbit.Facets
+```
+
+![Build Status](https://ci.appveyor.com/api/projects/status/8s5qii5j6xvgf7hy?svg=true)
