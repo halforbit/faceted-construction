@@ -12,6 +12,8 @@ The Facets library allows you to describe and make instances of **Faceted Contex
 
 These contexts are **descriptive** and **implementationless** at design time. 
 
+Component authors create **facet attributes** (such as the `DataStoreAttribute`, `RootPathAttribute`, etc. above) that allow *facets* of their components to be composed at runtime.
+
 You can use a `ContextFactory` to create an instance of a context at runtime.
 
 ```cs
