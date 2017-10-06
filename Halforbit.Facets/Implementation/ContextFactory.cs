@@ -14,20 +14,27 @@ namespace Halforbit.Facets.Implementation
 {
     public class ContextFactory : IContextFactory
     {
-        public ContextFactory(
-            IConfigurationProvider configurationProvider = null)
-        {
-            _log = t => _logger.AppendLine(t);
-
-            _configurationProvider = configurationProvider;
-        }
-
         readonly StringBuilder _logger = new StringBuilder();
 
         readonly Action<string> _log;
 
         readonly IConfigurationProvider _configurationProvider;
 
+        readonly IDependencyResolver _dependencyResolver;
+
+        public ContextFactory(
+            IConfigurationProvider configurationProvider = null,
+            IDependencyResolver dependencyResolver = null)
+        {
+            _log = t => _logger.AppendLine(t);
+
+            _configurationProvider = configurationProvider;
+
+            _dependencyResolver = dependencyResolver;
+
+            var contextTypeInfo = typeof(ContextFactory).GetTypeInfo();
+        }
+        
         public TInterface Create<TInterface>()
             where TInterface : class
         {
@@ -37,7 +44,7 @@ namespace Halforbit.Facets.Implementation
 
             foreach(var propertyInfo in contextTypeInfo.DeclaredProperties)
             {
-                var facetAttributes = GetFacetAttributes(propertyInfo);
+                var facetAttributes = GetFacetAttributes(propertyInfo).ToList();
 
                 var propertyType = propertyInfo.PropertyType;
 
@@ -48,15 +55,15 @@ namespace Halforbit.Facets.Implementation
                         propertyInfo,
                         _configurationProvider,
                         facetAttributes);
-
-                    continue;
                 }
-
-                MockContextProperty(
-                    contextMock,
-                    propertyInfo,
-                    facetAttributes,
-                    _configurationProvider);
+                else
+                {
+                    MockContextProperty(
+                        contextMock,
+                        propertyInfo,
+                        facetAttributes,
+                        _configurationProvider);
+                }
             }
 
             return contextMock.Object;
@@ -228,12 +235,12 @@ namespace Halforbit.Facets.Implementation
                 }
                 else
                 {
-                    throw new ParameterResolutionException();
+                    throw new ParameterResolutionException(_logger.ToString());
                         //"Stalled out; missing something.\r\n\r\n" + _logger.ToString());
                 }
             }
 
-            throw new ResultResolutionException();
+            throw new ResultResolutionException(_logger.ToString());
         }
 
         public static IEnumerable<FacetAttribute> GetFacetAttributes(PropertyInfo property)
@@ -334,7 +341,38 @@ namespace Halforbit.Facets.Implementation
                         IsOptional = isOptional
                     };
                 })
-                .ToArray();
+                .ToList();
+
+            if (_dependencyResolver != null)
+            {
+                var unresolvedParameters = parameters
+                    .Where(p => p.Value == null)
+                    .ToList();
+
+                if (unresolvedParameters.Any())
+                {
+                    foreach (var unresolvedParameter in unresolvedParameters)
+                    {
+                        var instance = default(object);
+
+                        if (_dependencyResolver.TryResolve(
+                            unresolvedParameter.ParameterInfo.ParameterType,
+                            out instance))
+                        {
+                            parameters.Remove(unresolvedParameter);
+
+                            parameters.Add(new
+                            {
+                                unresolvedParameter.ParameterInfo,
+
+                                Value = instance,
+
+                                unresolvedParameter.IsOptional
+                            });
+                        }
+                    }
+                }
+            }
 
             var missingParameters = parameters.Where(p =>
                 p.Value == null &&

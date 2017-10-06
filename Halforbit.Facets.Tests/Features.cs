@@ -1,4 +1,6 @@
+using Autofac;
 using Halforbit.Facets.Attributes;
+using Halforbit.Facets.Autofac.Implementation;
 using Halforbit.Facets.Exceptions;
 using Halforbit.Facets.Implementation;
 using Halforbit.Facets.Interface;
@@ -146,7 +148,7 @@ namespace Halforbit.Facets.Tests
             Assert.Equal(TestRootPath, storage.RootPath);
 
             configurationProviderMock.Verify(
-                m => m.GetValue(TestConfigKey), 
+                m => m.GetValue(TestConfigKey),
                 Times.Once);
         }
 
@@ -204,13 +206,37 @@ namespace Halforbit.Facets.Tests
                 Times.Once);
         }
 
+        [Fact, Trait("Type", "Unit")]
+        public void UsesDependencyResolver()
+        {
+            var builder = new ContainerBuilder();
+
+            builder.RegisterType<Dependency>().AsImplementedInterfaces();
+
+            var container = builder.Build();
+
+            var context = CreateContext<IDependentContext>(
+                dependencyResolver: new AutofacDependencyResolver(container));
+
+            var serializer = context.Serializer as JsonSerializerWithDependency;
+
+            Assert.NotNull(serializer);
+
+            Assert.NotNull(serializer.Dependency);
+        }
+
         static TContext CreateContext<TContext>(
-            IConfigurationProvider configurationProvider = null)
+            IConfigurationProvider configurationProvider = null,
+            IDependencyResolver dependencyResolver = null)
             where TContext : class
         {
-            return new ContextFactory(configurationProvider).Create<TContext>();
+            return 
+                new ContextFactory(
+                    configurationProvider, 
+                    dependencyResolver)
+                .Create<TContext>();
         }
-        
+
         // API interface 
 
         public interface IStorage { }
@@ -236,6 +262,20 @@ namespace Halforbit.Facets.Tests
         class JsonSerializer : ISerializer { }
 
         class GZipCompressor : ICompressor { }
+
+        class JsonSerializerWithDependency : ISerializer
+        {
+            public JsonSerializerWithDependency(IDependency dependency)
+            {
+                Dependency = dependency;
+            }
+
+            public IDependency Dependency { get; }
+        }
+
+        interface IDependency { }
+
+        class Dependency : IDependency { }
 
         class DataStore<TData> : IDataStore<TData>
         {
@@ -272,6 +312,11 @@ namespace Halforbit.Facets.Tests
         public class JsonSerializationAttribute : FacetAttribute
         {
             public override Type TargetType => typeof(JsonSerializer);
+        }
+
+        public class JsonSerializationWithDependency : FacetAttribute
+        {
+            public override Type TargetType => typeof(JsonSerializerWithDependency);
         }
 
         public class DataStoreAttribute : FacetAttribute
@@ -330,7 +375,7 @@ namespace Halforbit.Facets.Tests
                 [JsonSerialization]
                 public class Json { }
             }
-            
+
             [RootPath(TestRootPath)]
             public class LocalStorage { }
         }
@@ -363,6 +408,12 @@ namespace Halforbit.Facets.Tests
         public interface IParentContext : IContext
         {
             ISubContext SubContext { get; }
+        }
+
+        public interface IDependentContext : IContext
+        {
+            [JsonSerializationWithDependency]
+            ISerializer Serializer { get; }
         }
     }
 }

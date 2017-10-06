@@ -6,10 +6,13 @@
     <Authors>Halforbit</Authors>
     <Company>Halforbit</Company>
     <Description>Allows instancing of interfaces marked with facet attributes.</Description>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.6.1" />
     <PackageReference Include="Moq" Version="4.7.99" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
   </ItemGroup>
 
 </Project>
