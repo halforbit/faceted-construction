@@ -8,6 +8,7 @@ namespace Halforbit.Facets.Attributes
 
         public virtual Type[] ImpliedTypes => new Type[0];
 
-        public override string ToString() => GetType().Name.Replace("Attribute", "");
+        public override string ToString() => 
+            $"{GetType().Namespace}.{GetType().Name.Replace("Attribute", "")}";
     }
 }

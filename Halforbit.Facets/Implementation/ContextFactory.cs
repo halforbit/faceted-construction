@@ -96,10 +96,15 @@ namespace Halforbit.Facets.Implementation
             IConfigurationProvider configurationProvider)
             where TDataContext : class
         {
-            var lazyInstancer = new Lazy<object>(() => FulfillObject(
-                propertyInfo.PropertyType,
-                parametricAttributes,
-                configurationProvider));
+            var lazyInstancer = new Lazy<object>(() =>
+            {
+                _log($"Fulfilling property " + propertyInfo.Name);
+
+                return FulfillObject(
+                    propertyInfo.PropertyType,
+                    parametricAttributes,
+                    configurationProvider);
+            });
 
             contextMock
                 .Setup(BuildPropertyLambda<TDataContext>(propertyInfo))
@@ -245,10 +250,12 @@ namespace Halforbit.Facets.Implementation
             throw new ResultResolutionException(_logger.ToString());
         }
 
-        public static IEnumerable<FacetAttribute> GetFacetAttributes(PropertyInfo property)
+        public IEnumerable<FacetAttribute> GetFacetAttributes(PropertyInfo property)
         {
             foreach (var nestedTypeAttribute in GetNestedTypeAttributes(property.DeclaringType))
             {
+                _log("Found nested facet " + nestedTypeAttribute);
+
                 yield return nestedTypeAttribute;
             }
 
@@ -262,23 +269,29 @@ namespace Halforbit.Facets.Implementation
                     {
                         foreach (var extendedAttribute in GetNestedTypeAttributes(sourceType))
                         {
+                            _log("Found extended facet " + extendedAttribute);
+
                             yield return extendedAttribute;
                         }
                     }
                 }
                 else if (propertyAttribute is FacetAttribute)
                 {
+                    _log("Found property facet " + propertyAttribute);
+
                     yield return propertyAttribute as FacetAttribute;
                 }
             }
         }
 
-        static IEnumerable<FacetAttribute> GetNestedTypeAttributes(Type type)
+        IEnumerable<FacetAttribute> GetNestedTypeAttributes(Type type)
         {
             if (type.DeclaringType != null)
             {
                 foreach (var parentAttribute in GetNestedTypeAttributes(type.DeclaringType))
                 {
+                    _log("Found parent facet " + parentAttribute);
+
                     yield return parentAttribute;
                 }
             }
@@ -293,12 +306,16 @@ namespace Halforbit.Facets.Implementation
                     {
                         foreach (var extendedAttribute in GetNestedTypeAttributes(sourceType))
                         {
+                            _log("Found extended facet " + extendedAttribute);
+
                             yield return extendedAttribute;
                         }
                     }
                 }
                 else if (attribute is FacetAttribute)
                 {
+                    _log("Found attribute " + attribute);
+
                     yield return attribute as FacetAttribute;
                 }
             }
