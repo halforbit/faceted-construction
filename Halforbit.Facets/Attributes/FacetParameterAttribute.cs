@@ -17,5 +17,12 @@ namespace Halforbit.Facets.Attributes
         public virtual string Value { get; }
 
         public virtual string ConfigKey { get; }
+
+        public override string ToString()
+        {
+            return $"{GetType().Namespace}." +
+                $"{GetType().Name.Replace("Attribute", "")}" +
+                $"({(string.IsNullOrWhiteSpace(Value) ? ConfigKey : Value)})";
+        }
     }
 }

@@ -10,5 +10,7 @@ namespace Halforbit.Facets.Exceptions
         }
 
         public string Log { get; }
+
+        public override string Message => "Result could not be resolved.\r\n\r\n" + Log;
     }
 }

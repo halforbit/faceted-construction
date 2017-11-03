@@ -132,6 +132,8 @@ namespace Halforbit.Facets.Implementation
             IEnumerable<FacetAttribute> facetAttributes,
             IConfigurationProvider configurationProvider)
         {
+            _log($"Facet attributes: " + facetAttributes.Select(a => a.GetType().Name).JoinString());
+
             var impliedTypes = facetAttributes
                 .SelectMany(a => a.ImpliedTypes)
                 .Distinct()
