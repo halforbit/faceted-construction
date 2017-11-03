@@ -111,26 +111,26 @@ namespace Halforbit.Facets.Implementation
                 .Returns(() => lazyInstancer.Value);
         }
 
-        object FulfillProperty(
-            PropertyInfo property,
-            IEnumerable<FacetAttribute> attributes,
-            IConfigurationProvider configurationProvider)
-        {
-            _log($"Received attributes: " + attributes.JoinString());
+        //object FulfillProperty(
+        //    PropertyInfo property,
+        //    IEnumerable<FacetAttribute> attributes,
+        //    IConfigurationProvider configurationProvider)
+        //{
+        //    _log($"Received attributes: " + attributes.JoinString());
 
-            var discoveredAttributes = GetFacetAttributes(property);
+        //    var discoveredAttributes = GetFacetAttributes(property);
 
-            _log($"Discovered attributes: " + discoveredAttributes.JoinString());
+        //    _log($"Discovered attributes: " + discoveredAttributes.JoinString());
 
-            var DeclarativeAttributes = (attributes ?? Enumerable.Empty<FacetAttribute>())
-                .Concat(discoveredAttributes)
-                .ToList();
+        //    var DeclarativeAttributes = (attributes ?? Enumerable.Empty<FacetAttribute>())
+        //        .Concat(discoveredAttributes)
+        //        .ToList();
 
-            return FulfillObject(
-                property.PropertyType, 
-                DeclarativeAttributes,
-                configurationProvider);
-        }
+        //    return FulfillObject(
+        //        property.PropertyType, 
+        //        DeclarativeAttributes,
+        //        configurationProvider);
+        //}
 
         object FulfillObject(
             Type objectType,
@@ -258,6 +258,8 @@ namespace Halforbit.Facets.Implementation
 
         public IEnumerable<FacetAttribute> GetFacetAttributes(PropertyInfo property)
         {
+            _log($"Getting facet attributes for {property.Name} of {property.DeclaringType}");
+
             foreach (var nestedTypeAttribute in GetNestedTypeAttributes(property.DeclaringType))
             {
                 _log("Found nested facet " + nestedTypeAttribute);
@@ -292,6 +294,8 @@ namespace Halforbit.Facets.Implementation
 
         IEnumerable<FacetAttribute> GetNestedTypeAttributes(Type type)
         {
+            _log("Getting nested type facets for " + type);
+
             if (type.DeclaringType != null)
             {
                 foreach (var parentAttribute in GetNestedTypeAttributes(type.DeclaringType))
@@ -320,7 +324,7 @@ namespace Halforbit.Facets.Implementation
                 }
                 else if (attribute is FacetAttribute)
                 {
-                    _log("Found attribute " + attribute);
+                    _log("Found facet " + attribute);
 
                     yield return attribute as FacetAttribute;
                 }
