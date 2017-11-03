@@ -219,12 +219,9 @@ namespace Halforbit.Facets.Implementation
                     {
                         _log($"Constructed {targetType}");
 
-                        var r = instance.GetType().Implements(objectType);
-                        
                         var implements = instance
                             .GetType()
-                            .GetTypeInfo()
-                            .ImplementedInterfaces
+                            .GetInterfaces()
                             .Any(i => objectType.IsAssignableFrom(i));
 
                         if (implements)
