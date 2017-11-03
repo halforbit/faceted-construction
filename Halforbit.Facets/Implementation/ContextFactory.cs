@@ -221,13 +221,13 @@ namespace Halforbit.Facets.Implementation
 
                         if (objectType.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo()))
                         {
-                            _log($"{objectType.GetType()} -> {instance.GetType()}");
+                            _log($"{objectType.GetTypeInfo()} -> {instance.GetType().GetTypeInfo()}");
 
                             return instance;
                         }
                         else
                         {
-                            _log($"{objectType.GetType()} -!> {instance.GetType()}");
+                            _log($"{objectType.GetTypeInfo()} !> {instance.GetType().GetTypeInfo()}");
                         }
 
                         constructed.Add(instance);
