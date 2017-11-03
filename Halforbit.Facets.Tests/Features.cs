@@ -95,7 +95,7 @@ namespace Halforbit.Facets.Tests
         {
             var context = CreateContext<ISourceContext>();
 
-            var dataStore = context.DataStore as DataStore<string>;
+            var dataStore = context.DataStore as DataStore<byte[]>;
 
             Assert.NotNull(dataStore);
 
@@ -384,7 +384,7 @@ namespace Halforbit.Facets.Tests
         public interface ISourceContext : IContext
         {
             [Source(typeof(FacetSource.DataStore.Json))]
-            IDataStore<string> DataStore { get; }
+            IDataStore<byte[]> DataStore { get; }
         }
 
         public interface IOptionalOmittedContext : IContext
