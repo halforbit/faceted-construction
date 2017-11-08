@@ -376,6 +376,9 @@ namespace Halforbit.Facets.Tests
                 public class Json { }
             }
 
+            [RootPath("something-else")]
+            public class SomethingElse { }
+
             [RootPath(TestRootPath)]
             public class LocalStorage { }
         }
