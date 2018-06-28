@@ -110,34 +110,28 @@ namespace Halforbit.Facets.Implementation
                 .Setup(BuildPropertyLambda<TDataContext>(propertyInfo))
                 .Returns(() => lazyInstancer.Value);
         }
-
-        //object FulfillProperty(
-        //    PropertyInfo property,
-        //    IEnumerable<FacetAttribute> attributes,
-        //    IConfigurationProvider configurationProvider)
-        //{
-        //    _log($"Received attributes: " + attributes.JoinString());
-
-        //    var discoveredAttributes = GetFacetAttributes(property);
-
-        //    _log($"Discovered attributes: " + discoveredAttributes.JoinString());
-
-        //    var DeclarativeAttributes = (attributes ?? Enumerable.Empty<FacetAttribute>())
-        //        .Concat(discoveredAttributes)
-        //        .ToList();
-
-        //    return FulfillObject(
-        //        property.PropertyType, 
-        //        DeclarativeAttributes,
-        //        configurationProvider);
-        //}
-
+        
         object FulfillObject(
             Type objectType,
             IEnumerable<FacetAttribute> facetAttributes,
             IConfigurationProvider configurationProvider)
         {
             _log($"Facet attributes: " + facetAttributes.Select(a => a.GetType().Name).JoinString());
+
+            var constructed = new List<object>();
+
+            foreach (var uses in facetAttributes.OfType<UsesAttribute>())
+            {
+                if (!_dependencyResolver.TryResolve(uses.TargetType, out var o))
+                {
+                    throw new ParameterResolutionException(
+                        $"Dependency of type {uses.TargetType} could not be resolved.");
+                }
+
+                constructed.Add(o);
+            }
+
+            facetAttributes = facetAttributes.Where(f => !f.GetType().Equals(typeof(UsesAttribute)));
 
             var impliedTypes = facetAttributes
                 .SelectMany(a => a.ImpliedTypes)
@@ -162,8 +156,6 @@ namespace Halforbit.Facets.Implementation
             var remainingTypesToConstruct = typeGroups
                 .Where(t => !t.Key.GetTypeInfo().IsInterface)
                 .ToList();
-
-            var constructed = new List<object>();
 
             var allowOmitOptionals = false;
 
