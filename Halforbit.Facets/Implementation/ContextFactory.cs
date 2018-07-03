@@ -231,9 +231,10 @@ namespace Halforbit.Facets.Implementation
                     }
 
                     var arguments = arglist
+                        .GroupBy(kv => kv.Key)
                         .ToDictionary(
-                            kv => kv.Key,
-                            kv => kv.Value);
+                            g => g.Key,
+                            g => g.Last());
 
                     if (targetType.GetTypeInfo().ContainsGenericParameters)
                     {
