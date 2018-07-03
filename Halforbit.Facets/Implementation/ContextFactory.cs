@@ -234,7 +234,7 @@ namespace Halforbit.Facets.Implementation
                         .GroupBy(kv => kv.Key)
                         .ToDictionary(
                             g => g.Key,
-                            g => g.Last());
+                            g => g.Last().Value);
 
                     if (targetType.GetTypeInfo().ContainsGenericParameters)
                     {
