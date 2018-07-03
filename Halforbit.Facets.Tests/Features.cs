@@ -228,15 +228,15 @@ namespace Halforbit.Facets.Tests
         [Fact, Trait("Type", "Unit")]
         public void UsesAncestorFacetAndGenericParameters()
         {
-            var context = CreateContext<IGenericParentContext>();
+            var context = CreateContext<IStoreParentContext>();
 
-            var service = context.GenericContext.GenericService;
+            var service = context.Things.Get;
 
             Assert.NotNull(service);
 
-            Assert.NotNull(service.GenericDependency);
+            Assert.NotNull(service.RequestMapper);
 
-            Assert.Equal("steve", service.GenericDependency.Name);
+            Assert.Equal("steve", service.RequestMapper.Name);
         }
 
         static TContext CreateContext<TContext>(
@@ -433,65 +433,78 @@ namespace Halforbit.Facets.Tests
             ISerializer Serializer { get; }
         }
 
-        public interface IGenericContext<TValueA, TValueB> : IContext
+        public interface IStoreContext<TKey, TValue> : IContext
         {
-            [GenericService]
-            [Uses(typeof(GenericDependency<,>), nameof(TValueA), nameof(TValueB))]
-            IGenericService GenericService { get; }
+            [ServiceGet]
+            [Uses(typeof(StoreRequestMapper<,>), nameof(TKey), nameof(TValue))]
+            IEndpoint<StoreGetCommand<TKey, TValue>, TValue> Get { get; }
         }
 
-
-        public interface IGenericParentContext : IContext
+        public class StoreGetCommand<TKey, TValue>
         {
-            [GenericDependencyName("steve")]
-            IGenericContext<Guid, string> GenericContext { get; }
+            public StoreGetCommand()
+            {
+                var a = typeof(TKey).Name;
+
+                var b = typeof(TValue).Name;
+            }
+        }
+
+        public interface IStoreParentContext : IContext
+        {
+            [StoreName("steve")]
+            IStoreContext<Guid, string> Things { get; }
         }
         
-        public interface IGenericDependency
+        public interface IRequestMapper
         {
             string Name { get; }
         }
 
-        public class GenericDependency<TValueA, TValueB> : IGenericDependency
+        public class StoreRequestMapper<TKey, TValue> : IRequestMapper
         {
-            public GenericDependency(
+            public StoreRequestMapper(
                 string name)
             {
+                var a = typeof(TKey).Name;
+
+                var b = typeof(TValue).Name;
+
                 Name = name;
             }
 
             public string Name { get; }
         }
 
-        public interface IGenericService
+        public interface IEndpoint<TCommand, TResult>
         {
-            IGenericDependency GenericDependency { get; }
+            IRequestMapper RequestMapper { get; }
         }
 
-        public class GenericService : IGenericService
+        public class Endpoint<TCommand, TResult> : IEndpoint<TCommand, TResult>
         {
-            public GenericService(
-                IGenericDependency genericDependency)
+            public Endpoint(
+                IRequestMapper genericDependency)
             {
-                GenericDependency = genericDependency;
+                RequestMapper = genericDependency;
             }
 
-            public IGenericDependency GenericDependency { get; }
+            public IRequestMapper RequestMapper { get; }
         }
 
-        public class GenericServiceAttribute : FacetAttribute
+        public class ServiceGetAttribute : FacetAttribute
         {
-            public override Type TargetType => typeof(GenericService);
+            public override Type TargetType => typeof(Endpoint<,>);
         }
 
-        public class GenericDependencyNameAttribute : FacetParameterAttribute
+        public class StoreNameAttribute : FacetParameterAttribute
         {
-            public GenericDependencyNameAttribute(string value = null, string configKey = null) : 
+            public StoreNameAttribute(string value = null, string configKey = null) : 
                 base(value, configKey) { }
 
             public override string ParameterName => "name";
 
-            public override Type TargetType => typeof(GenericDependency<,>);
+            public override Type TargetType => typeof(StoreRequestMapper<,>);
         }
     }
 }

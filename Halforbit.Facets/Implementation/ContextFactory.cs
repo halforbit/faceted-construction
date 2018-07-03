@@ -149,17 +149,21 @@ namespace Halforbit.Facets.Implementation
 
                 if (!(_dependencyResolver?.TryResolve(targetType, out o) ?? false))
                 {
+                    var localFacets = facetAttributes
+                        .Except(new[] { uses })
+                        .Where(f => f.TargetType.Equals(targetType.GetGenericTypeDefinition()))
+                        .ToList();
+
                     o = FulfillObject(
                         targetType,
                         contextType,
-                        facetAttributes
-                            .Except(new[] { uses })
-                            .Where(f => f.TargetType.Equals(targetType.GetGenericTypeDefinition()))
-                            .ToList(),
+                        localFacets,
                         configurationProvider);
 
                     if(o != null)
                     {
+                        facetAttributes = facetAttributes.Except(localFacets).ToList();
+
                         constructed.Add(o);
                     }
                     else
