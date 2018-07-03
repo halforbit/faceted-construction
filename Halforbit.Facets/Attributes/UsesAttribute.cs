@@ -7,12 +7,16 @@ namespace Halforbit.Facets.Attributes
         readonly Type _targetType;
 
         public UsesAttribute(
-            Type targetType)
+            Type targetType,
+            params string[] genericParameterNames)
         {
             _targetType = targetType;
+            GenericParameterNames = genericParameterNames;
         }
 
         public override Type TargetType => _targetType;
+
+        public string[] GenericParameterNames { get; }
 
         public override string ToString()
         {

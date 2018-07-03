@@ -1,6 +1,7 @@
 ﻿using Halforbit.Facets.Attributes;
 using Halforbit.Facets.Exceptions;
 using Halforbit.Facets.Interface;
+using Halforbit.ObjectTools.Collections;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,8 @@ namespace Halforbit.Facets.Implementation
             var contextTypeInfo = typeof(ContextFactory).GetTypeInfo();
         }
         
-        public TInterface Create<TInterface>()
+        public TInterface Create<TInterface>(
+            IReadOnlyList<FacetAttribute> facetAttributes = default)
             where TInterface : class
         {
             var contextMock = new Mock<TInterface>(MockBehavior.Strict);
@@ -44,7 +46,9 @@ namespace Halforbit.Facets.Implementation
 
             foreach(var propertyInfo in contextTypeInfo.DeclaredProperties)
             {
-                var facetAttributes = GetFacetAttributes(propertyInfo).ToList();
+                facetAttributes = (facetAttributes ?? EmptyReadOnlyList<FacetAttribute>.Instance)
+                    .Concat(GetFacetAttributes(propertyInfo))
+                    .ToList();
 
                 var propertyType = propertyInfo.PropertyType;
 
@@ -73,7 +77,7 @@ namespace Halforbit.Facets.Implementation
             Mock<TDataContext> dataContextMock,
             PropertyInfo propertyInfo,
             IConfigurationProvider configurationProvider,
-            IEnumerable<FacetAttribute> parametricAttributes)
+            IReadOnlyList<FacetAttribute> parametricAttributes)
             where TDataContext : class
         {
             var createMethod = typeof(ContextFactory)
@@ -82,7 +86,7 @@ namespace Halforbit.Facets.Implementation
 
             var lazyInstancer = new Lazy<object>(() => createMethod.Invoke(
                 this,
-                new object[] { }));
+                new object[] { parametricAttributes }));
 
             dataContextMock
                 .Setup(BuildPropertyLambda<TDataContext>(propertyInfo))
@@ -102,6 +106,7 @@ namespace Halforbit.Facets.Implementation
 
                 return FulfillObject(
                     propertyInfo.PropertyType,
+                    typeof(TDataContext),
                     parametricAttributes,
                     configurationProvider);
             });
@@ -113,6 +118,7 @@ namespace Halforbit.Facets.Implementation
         
         object FulfillObject(
             Type objectType,
+            Type contextType,
             IEnumerable<FacetAttribute> facetAttributes,
             IConfigurationProvider configurationProvider)
         {
@@ -122,13 +128,50 @@ namespace Halforbit.Facets.Implementation
 
             foreach (var uses in facetAttributes.OfType<UsesAttribute>())
             {
-                if (!_dependencyResolver.TryResolve(uses.TargetType, out var o))
+                var targetType = uses.TargetType;
+
+                if(contextType.IsGenericType && 
+                    targetType.IsGenericTypeDefinition &&
+                    uses.GenericParameterNames.Any())
                 {
-                    throw new ParameterResolutionException(
-                        $"Dependency of type {uses.TargetType} could not be resolved.");
+                    var genericArgumentsByName = contextType
+                        .GetGenericTypeDefinition()
+                        .GetGenericArguments()
+                        .Select((a, i) => new { a.Name, Type = contextType.GetGenericArguments()[i] })
+                        .ToDictionary(a => a.Name, a => a.Type);
+
+                    targetType = targetType.MakeGenericType(uses.GenericParameterNames
+                        .Select(n => genericArgumentsByName[n])
+                        .ToArray());
                 }
 
-                constructed.Add(o);
+                var o = default(object);
+
+                if (!(_dependencyResolver?.TryResolve(targetType, out o) ?? false))
+                {
+                    o = FulfillObject(
+                        targetType,
+                        contextType,
+                        facetAttributes
+                            .Except(new[] { uses })
+                            .Where(f => f.TargetType.Equals(targetType.GetGenericTypeDefinition()))
+                            .ToList(),
+                        configurationProvider);
+
+                    if(o != null)
+                    {
+                        constructed.Add(o);
+                    }
+                    else
+                    {
+                        throw new ParameterResolutionException(
+                            $"Dependency of type {uses.TargetType} could not be resolved.");
+                    }
+                }
+                else
+                {
+                    constructed.Add(o);
+                }
             }
 
             facetAttributes = facetAttributes.Where(f => !f.GetType().Equals(typeof(UsesAttribute)));
@@ -154,7 +197,11 @@ namespace Halforbit.Facets.Implementation
             _log("Interfaces to fulfill: " + interfacesToFulfill.JoinString());
 
             var remainingTypesToConstruct = typeGroups
-                .Where(t => !t.Key.GetTypeInfo().IsInterface)
+                .Where(t => 
+                    !t.Key.GetTypeInfo().IsInterface && 
+                    !constructed.Any(c => 
+                        c.GetType().IsGenericType && 
+                        c.GetType().GetGenericTypeDefinition().Equals(t.Key)))
                 .ToList();
 
             var allowOmitOptionals = false;
@@ -214,7 +261,7 @@ namespace Halforbit.Facets.Implementation
                         var implements = instance
                             .GetType()
                             .GetInterfaces()
-                            .Any(i => objectType.IsAssignableFrom(i));
+                            .Any(i => i.IsAssignableFrom(objectType));
 
                         if (implements)
                             //objectType.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo()))

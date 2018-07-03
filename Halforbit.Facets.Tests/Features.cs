@@ -225,6 +225,20 @@ namespace Halforbit.Facets.Tests
             Assert.NotNull(serializer.Dependency);
         }
 
+        [Fact, Trait("Type", "Unit")]
+        public void UsesAncestorFacetAndGenericParameters()
+        {
+            var context = CreateContext<IGenericParentContext>();
+
+            var service = context.GenericContext.GenericService;
+
+            Assert.NotNull(service);
+
+            Assert.NotNull(service.GenericDependency);
+
+            Assert.Equal("steve", service.GenericDependency.Name);
+        }
+
         static TContext CreateContext<TContext>(
             IConfigurationProvider configurationProvider = null,
             IDependencyResolver dependencyResolver = null)
@@ -417,6 +431,67 @@ namespace Halforbit.Facets.Tests
         {
             [JsonSerializationWithDependency]
             ISerializer Serializer { get; }
+        }
+
+        public interface IGenericContext<TValueA, TValueB> : IContext
+        {
+            [GenericService]
+            [Uses(typeof(GenericDependency<,>), nameof(TValueA), nameof(TValueB))]
+            IGenericService GenericService { get; }
+        }
+
+
+        public interface IGenericParentContext : IContext
+        {
+            [GenericDependencyName("steve")]
+            IGenericContext<Guid, string> GenericContext { get; }
+        }
+        
+        public interface IGenericDependency
+        {
+            string Name { get; }
+        }
+
+        public class GenericDependency<TValueA, TValueB> : IGenericDependency
+        {
+            public GenericDependency(
+                string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
+
+        public interface IGenericService
+        {
+            IGenericDependency GenericDependency { get; }
+        }
+
+        public class GenericService : IGenericService
+        {
+            public GenericService(
+                IGenericDependency genericDependency)
+            {
+                GenericDependency = genericDependency;
+            }
+
+            public IGenericDependency GenericDependency { get; }
+        }
+
+        public class GenericServiceAttribute : FacetAttribute
+        {
+            public override Type TargetType => typeof(GenericService);
+        }
+
+        public class GenericDependencyNameAttribute : FacetParameterAttribute
+        {
+            public GenericDependencyNameAttribute(string value = null, string configKey = null) : 
+                base(value, configKey) { }
+
+            public override string ParameterName => "name";
+
+            public override Type TargetType => typeof(GenericDependency<,>);
         }
     }
 }
