@@ -239,14 +239,29 @@ namespace Halforbit.Facets.Tests
             Assert.Equal("steve", service.RequestMapper.Name);
         }
 
+        [Fact, Trait("Type", "Unit")]
+        public void Uses_WhenDependencyNotUsed_ThrowDependencyUnusedException()
+        {
+            var builder = new ContainerBuilder();
+
+            builder.RegisterType<UsesDependency>().AsImplementedInterfaces();
+
+            var container = builder.Build();
+
+            var context = CreateContext<IUsesContext>(
+                dependencyResolver: new AutofacDependencyResolver(container));
+
+            Assert.Throws<DependencyUnusedException>(() => context.NonDependant);
+        }
+
         static TContext CreateContext<TContext>(
             IConfigurationProvider configurationProvider = null,
             IDependencyResolver dependencyResolver = null)
             where TContext : class
         {
-            return 
+            return
                 new ContextFactory(
-                    configurationProvider, 
+                    configurationProvider,
                     dependencyResolver)
                 .Create<TContext>();
         }
@@ -455,7 +470,7 @@ namespace Halforbit.Facets.Tests
             [StoreName("steve")]
             IStoreContext<Guid, string> Things { get; }
         }
-        
+
         public interface IRequestMapper
         {
             string Name { get; }
@@ -499,12 +514,34 @@ namespace Halforbit.Facets.Tests
 
         public class StoreNameAttribute : FacetParameterAttribute
         {
-            public StoreNameAttribute(string value = null, string configKey = null) : 
+            public StoreNameAttribute(string value = null, string configKey = null) :
                 base(value, configKey) { }
 
             public override string ParameterName => "name";
 
             public override Type TargetType => typeof(StoreRequestMapper<,>);
+        }
+
+        // UsesAttribute Test Types ///////////////////////////////////////////
+
+        public interface IUsesDependency { }
+
+        public interface IUsesNonDependant { }
+
+        public class UsesDependency : IUsesDependency { }
+
+        public class UsesNonDependant : IUsesNonDependant { }
+
+        public class UsesNonDependantFacetAttribute : FacetAttribute
+        {
+            public override Type TargetType => typeof(UsesNonDependant);
+        }
+
+        public interface IUsesContext
+        {
+            [Uses(typeof(IUsesDependency))]
+            [UsesNonDependantFacet]
+            IUsesNonDependant NonDependant { get; }
         }
     }
 }

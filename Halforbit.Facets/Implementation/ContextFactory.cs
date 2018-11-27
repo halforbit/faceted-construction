@@ -126,6 +126,8 @@ namespace Halforbit.Facets.Implementation
 
             var constructed = new List<object>();
 
+            var remainingDependenciesToUse = new List<object>();
+
             foreach (var uses in facetAttributes.OfType<UsesAttribute>())
             {
                 var targetType = uses.TargetType;
@@ -175,6 +177,8 @@ namespace Halforbit.Facets.Implementation
                 else
                 {
                     constructed.Add(o);
+
+                    remainingDependenciesToUse.Add(o);
                 }
             }
 
@@ -253,7 +257,7 @@ namespace Halforbit.Facets.Implementation
 
                     _log($"omit optionals {allowOmitOptionals}");
 
-                    var instance = TryConstruct(
+                    var (instance, usedDependencies) = TryConstruct(
                         type: targetType,
                         arguments: arguments,
                         resolvedDependencies: constructed,
@@ -262,6 +266,14 @@ namespace Halforbit.Facets.Implementation
                     if (instance != null)
                     {
                         _log($"Constructed {targetType}");
+
+                        foreach (var usedDependency in usedDependencies)
+                        {
+                            if(remainingDependenciesToUse.Contains(usedDependency))
+                            {
+                                remainingDependenciesToUse.Remove(usedDependency);
+                            }
+                        }
 
                         var implements = instance
                             .GetType()
@@ -272,6 +284,11 @@ namespace Halforbit.Facets.Implementation
                             //objectType.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo()))
                         {
                             _log($"{objectType.GetTypeInfo()} -> {instance.GetType().GetTypeInfo()}");
+
+                            if(remainingDependenciesToUse.Any())
+                            {
+                                throw new DependencyUnusedException(_logger.ToString());
+                            }
 
                             return instance;
                         }
@@ -381,7 +398,7 @@ namespace Halforbit.Facets.Implementation
             }
         }
 
-        object TryConstruct(
+        (object instance, IReadOnlyList<object> usedDependencies) TryConstruct(
             Type type,
             IReadOnlyDictionary<string, object> arguments,
             IReadOnlyList<object> resolvedDependencies,
@@ -463,14 +480,20 @@ namespace Halforbit.Facets.Implementation
                     missingParameters.JoinString(
                         toString: p => $"{p.ParameterInfo.ParameterType} {p.ParameterInfo.Name}"));
 
-                return null;
+                return (null, EmptyReadOnlyList<object>.Instance);
             }
 
-            return Activator.CreateInstance(
+            var usedDependencies = parameters
+                .Where(p => resolvedDependencies.Contains(p))
+                .ToList();
+
+            var createdInstance = Activator.CreateInstance(
                 type,
                 parameters
                     .Select(p => p.Value)
                     .ToArray());
+
+            return (createdInstance, usedDependencies);
         }
 
         KeyValuePair<string, object> GetArgument(
