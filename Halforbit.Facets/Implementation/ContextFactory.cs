@@ -404,7 +404,7 @@ namespace Halforbit.Facets.Implementation
             IReadOnlyList<object> resolvedDependencies,
             bool allowOmitOptionals)
         {
-            var constructor = type.GetTypeInfo().DeclaredConstructors.Single();
+            var constructor = type.GetTypeInfo().DeclaredConstructors.Single(c => !c.IsStatic);
 
             var parameters = constructor
                 .GetParameters()
