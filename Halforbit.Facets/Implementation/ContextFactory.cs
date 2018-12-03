@@ -46,7 +46,7 @@ namespace Halforbit.Facets.Implementation
 
             foreach(var propertyInfo in contextTypeInfo.DeclaredProperties)
             {
-                facetAttributes = (facetAttributes ?? EmptyReadOnlyList<FacetAttribute>.Instance)
+                var propertyFacetAttributes = (facetAttributes ?? EmptyReadOnlyList<FacetAttribute>.Instance)
                     .Concat(GetFacetAttributes(propertyInfo))
                     .ToList();
 
@@ -58,14 +58,14 @@ namespace Halforbit.Facets.Implementation
                         contextMock,
                         propertyInfo,
                         _configurationProvider,
-                        facetAttributes);
+                        propertyFacetAttributes);
                 }
                 else
                 {
                     MockContextProperty(
                         contextMock,
                         propertyInfo,
-                        facetAttributes,
+                        propertyFacetAttributes,
                         _configurationProvider);
                 }
             }
