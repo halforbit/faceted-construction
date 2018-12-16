@@ -449,22 +449,24 @@ namespace Halforbit.Facets.Implementation
                 {
                     foreach (var unresolvedParameter in unresolvedParameters)
                     {
+                        var parameterType = unresolvedParameter.ParameterInfo.ParameterType;
+
+                        if (parameterType.IsValueType) continue;
+
                         var instance = default(object);
 
                         if (_dependencyResolver.TryResolve(
-                            unresolvedParameter.ParameterInfo.ParameterType,
+                            parameterType,
                             out instance))
                         {
-                            parameters.Remove(unresolvedParameter);
-
-                            parameters.Add(new
+                            parameters[parameters.IndexOf(unresolvedParameter)] = new
                             {
                                 unresolvedParameter.ParameterInfo,
 
                                 Value = instance,
 
                                 unresolvedParameter.IsOptional
-                            });
+                            };
                         }
                     }
                 }
