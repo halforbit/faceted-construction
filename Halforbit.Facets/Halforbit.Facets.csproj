@@ -6,7 +6,7 @@
     <Authors>Halforbit</Authors>
     <Company>Halforbit</Company>
     <Description>Allows instancing of interfaces marked with facet attributes.</Description>
-    <Version>1.0.18</Version>
+    <Version>1.0.19</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

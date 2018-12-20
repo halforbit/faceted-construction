@@ -2,7 +2,7 @@
 
 namespace Halforbit.Facets.Implementation
 {
-    class FrameworkConfigurationProvider : Halforbit.Facets.Interface.IConfigurationProvider
+    public class FrameworkConfigurationProvider : Halforbit.Facets.Interface.IConfigurationProvider
     {
         IConfiguration _configuration;
 
