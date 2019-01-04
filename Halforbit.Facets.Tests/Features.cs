@@ -254,6 +254,19 @@ namespace Halforbit.Facets.Tests
             Assert.Throws<DependencyUnusedException>(() => context.NonDependant);
         }
 
+        [Fact, Trait("Type", "Unit")]
+        public void Uses_WhenUsingConcreteSubtype_Success()
+        {
+            var builder = new ContainerBuilder();
+
+            var container = builder.Build();
+
+            var context = CreateContext<IUsesConcreteContext>(
+                dependencyResolver: new AutofacDependencyResolver(container));
+
+            var dataStore = context.TestDataStore;
+        }
+
         static TContext CreateContext<TContext>(
             IConfigurationProvider configurationProvider = null,
             IDependencyResolver dependencyResolver = null)
@@ -542,6 +555,37 @@ namespace Halforbit.Facets.Tests
             [Uses(typeof(IUsesDependency))]
             [UsesNonDependantFacet]
             IUsesNonDependant NonDependant { get; }
+        }
+
+        // UsesAttribute Concrete Test Types //////////////////////////////////
+
+        public interface ITestDataStore<TKey, TValue> { }
+
+        public interface ITestValidator<TKey, TValue> { }
+
+        public abstract class TestValidatorBase<TKey, TValue> : ITestValidator<TKey, TValue> { }
+
+        public class TestValidator : TestValidatorBase<Guid, string> { }
+
+        public class TestFileStoreDataStore<TKey, TValue> : ITestDataStore<TKey, TValue>
+        {
+            public TestFileStoreDataStore(
+                [Optional]ITestValidator<TKey, TValue> validator = null)
+            {
+
+            }
+        }
+
+        public class TestFileStoreAttributeAttribute : FacetAttribute
+        {
+            public override Type TargetType => typeof(TestFileStoreDataStore<,>);
+        }
+
+        public interface IUsesConcreteContext
+        {
+            [TestFileStoreAttribute]
+            [Uses(typeof(TestValidator))]
+            ITestDataStore<Guid, string> TestDataStore { get; }
         }
     }
 }

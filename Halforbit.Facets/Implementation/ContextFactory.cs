@@ -153,7 +153,9 @@ namespace Halforbit.Facets.Implementation
                 {
                     var localFacets = facetAttributes
                         .Except(new[] { uses })
-                        .Where(f => f.TargetType.Equals(targetType.GetGenericTypeDefinition()))
+                        .Where(f => f.TargetType.Equals(targetType.IsGenericType ? 
+                            targetType.GetGenericTypeDefinition() : 
+                            targetType))
                         .ToList();
 
                     o = FulfillObject(
@@ -486,7 +488,8 @@ namespace Halforbit.Facets.Implementation
             }
 
             var usedDependencies = parameters
-                .Where(p => resolvedDependencies.Contains(p))
+                .Select(p => p.Value)
+                .Where(o => resolvedDependencies.Contains(o))
                 .ToList();
 
             var createdInstance = Activator.CreateInstance(
