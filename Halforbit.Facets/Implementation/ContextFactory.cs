@@ -47,7 +47,7 @@ namespace Halforbit.Facets.Implementation
             foreach(var propertyInfo in contextTypeInfo.DeclaredProperties)
             {
                 var propertyFacetAttributes = (facetAttributes ?? EmptyReadOnlyList<FacetAttribute>.Instance)
-                    .Concat(GetFacetAttributes(propertyInfo))
+                    .Concat(FacetFinder.GetFacetAttributes(propertyInfo, _log))
                     .ToList();
 
                 var propertyType = propertyInfo.PropertyType;
@@ -323,81 +323,6 @@ namespace Halforbit.Facets.Implementation
             }
 
             throw new ResultResolutionException(_logger.ToString());
-        }
-
-        public IEnumerable<FacetAttribute> GetFacetAttributes(PropertyInfo property)
-        {
-            _log($"Getting facet attributes for {property.Name} of {property.DeclaringType}");
-
-            foreach (var nestedTypeAttribute in GetNestedTypeAttributes(property.DeclaringType))
-            {
-                _log("Found nested facet " + nestedTypeAttribute);
-
-                yield return nestedTypeAttribute;
-            }
-
-            foreach (var propertyAttribute in property.GetCustomAttributes(true))
-            {
-                var sourceAttribute = propertyAttribute as SourceAttribute;
-
-                if (sourceAttribute != null)
-                {
-                    foreach (var sourceType in sourceAttribute.Types)
-                    {
-                        foreach (var extendedAttribute in GetNestedTypeAttributes(sourceType))
-                        {
-                            _log("Found extended facet " + extendedAttribute);
-
-                            yield return extendedAttribute;
-                        }
-                    }
-                }
-                else if (propertyAttribute is FacetAttribute)
-                {
-                    _log("Found property facet " + propertyAttribute);
-
-                    yield return propertyAttribute as FacetAttribute;
-                }
-            }
-        }
-
-        IEnumerable<FacetAttribute> GetNestedTypeAttributes(Type type)
-        {
-            _log("Getting nested type facets for " + type);
-
-            if (type.DeclaringType != null)
-            {
-                foreach (var parentAttribute in GetNestedTypeAttributes(type.DeclaringType))
-                {
-                    _log("Found parent facet " + parentAttribute);
-
-                    yield return parentAttribute;
-                }
-            }
-
-            foreach (var attribute in type.GetTypeInfo().GetCustomAttributes(true))
-            {
-                var sourceAttribute = attribute as SourceAttribute;
-
-                if (sourceAttribute != null)
-                {
-                    foreach (var sourceType in sourceAttribute.Types)
-                    {
-                        foreach (var extendedAttribute in GetNestedTypeAttributes(sourceType))
-                        {
-                            _log("Found extended facet " + extendedAttribute);
-
-                            yield return extendedAttribute;
-                        }
-                    }
-                }
-                else if (attribute is FacetAttribute)
-                {
-                    _log("Found facet " + attribute);
-
-                    yield return attribute as FacetAttribute;
-                }
-            }
         }
 
         (object instance, IReadOnlyList<object> usedDependencies) TryConstruct(
