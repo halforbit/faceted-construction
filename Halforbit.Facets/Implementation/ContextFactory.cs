@@ -253,8 +253,6 @@ namespace Halforbit.Facets.Implementation
 
                     _log($"Try construct {targetType}");
 
-                    _log($"arguments {arguments.JoinString()}");
-
                     _log($"resolved {constructed.JoinString()}");
 
                     _log($"omit optionals {allowOmitOptionals}");
