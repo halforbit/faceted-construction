@@ -1,7 +1,5 @@
 ﻿using Halforbit.Facets.Implementation;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace Halforbit.Facets.Tests
